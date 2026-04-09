@@ -1,6 +1,23 @@
 import numpy as np
 import pandas as pd
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score, precision_score, recall_score, f1_score
+
+def calculate_anomaly_metrics(y_true_anomaly, y_pred_anomaly):
+    """
+    V2 Upgrade: Precision, Recall, F1 for Anomaly Detection Layer.
+    """
+    y_true_anomaly = np.array(y_true_anomaly).flatten()
+    y_pred_anomaly = np.array(y_pred_anomaly).flatten()
+    
+    precision = precision_score(y_true_anomaly, y_pred_anomaly, zero_division=0)
+    recall = recall_score(y_true_anomaly, y_pred_anomaly, zero_division=0)
+    f1 = f1_score(y_true_anomaly, y_pred_anomaly, zero_division=0)
+    
+    return {
+        "Precision": round(float(precision), 4),
+        "Recall": round(float(recall), 4),
+        "F1_Score": round(float(f1), 4)
+    }
 
 def calculate_academic_metrics(y_true, y_pred):
     """
@@ -9,8 +26,8 @@ def calculate_academic_metrics(y_true, y_pred):
     y_pred: Predicted values (Load %)
     """
     # Ensure they are numpy arrays and flat
-    y_true = np.array(y_true).flatten()
-    y_pred = np.array(y_pred).flatten()
+    y_true = np.nan_to_num(np.array(y_true).flatten(), nan=0.0, posinf=100.0, neginf=0.0)
+    y_pred = np.nan_to_num(np.array(y_pred).flatten(), nan=0.0, posinf=100.0, neginf=0.0)
     
     # MAE: Mean Absolute Error
     mae = mean_absolute_error(y_true, y_pred)
@@ -25,7 +42,9 @@ def calculate_academic_metrics(y_true, y_pred):
     r2 = r2_score(y_true, y_pred)
     
     # WAPE: Weighted Absolute Percentage Error (Common in networking)
-    wape = np.sum(np.abs(y_true - y_pred)) / np.sum(y_true) if np.sum(y_true) != 0 else 0
+    # Using a small epsilon to avoid division by zero
+    total_sum = np.sum(np.abs(y_true))
+    wape = np.sum(np.abs(y_true - y_pred)) / (total_sum + 1e-7)
     
     return {
         "MAE": round(float(mae), 4),

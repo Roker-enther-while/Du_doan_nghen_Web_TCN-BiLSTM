@@ -137,13 +137,15 @@ def run_advanced_training_v3():
         df = loader.load(f)
         if df is not None and len(df) > WINDOW_SIZE:
             try:
-                # Use upgraded preprocessing (10 features) with HORIZON
-                X_tr, y_tr, X_te, y_te, _ = prepare_data_v2(df, window_size=WINDOW_SIZE, horizon=HORIZON, use_log=USE_LOG)
-                X_train_list.append(X_tr.astype(np.float32))
-                y_train_list.append(y_tr.astype(np.float32))
-                X_test_list.append(X_te.astype(np.float32))
-                y_test_list.append(y_te.astype(np.float32))
-            except: continue
+                # Use upgraded preprocessing (10+ features) with HORIZON
+                X_tr, y_tr, X_te, y_te, _ = prepare_data_v2(df, window_size=WINDOW_SIZE, horizon=HORIZON)
+                X_train_list.append(X_tr.astype(np.float16))
+                y_train_list.append(y_tr.astype(np.float16))
+                X_test_list.append(X_te.astype(np.float16))
+                y_test_list.append(y_te.astype(np.float16))
+            except Exception as e: 
+                print(f"Skipping {f} due to: {e}")
+                continue
 
     if not X_train_list:
         print("[!] No valid data found for training. Check if files have >60 samples.")

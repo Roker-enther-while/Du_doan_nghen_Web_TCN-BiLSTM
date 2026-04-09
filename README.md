@@ -71,7 +71,7 @@ Hệ thống duy trì độ ổn định cao với khoảng tin cậy 95%, đả
 
 ## 4. Hướng dẫn Triển khai (Deployment)
 
-### Cài đặt môi trường & Kích hoạt GPU (RTX 40-series)
+### Cài đặt môi trường & Kích hoạt GPU
 Dự án yêu cầu **TensorFlow 2.10.1** để hỗ trợ GPU bản xứ trên Windows.
 
 1.  **Cài đặt thư viện**:
