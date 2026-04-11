@@ -6,6 +6,24 @@ try:
 except ImportError:
     savgol_filter = None
 
+try:
+    import pywt
+except ImportError:
+    pywt = None
+
+def wavelet_denoise(data, wavelet='db4', level=1):
+    """
+    Advanced Wavelet Multi-resolution Analysis (WRA) for Log Denoising.
+    Uses Soft Thresholding to separate structural signal from stochastic noise.
+    """
+    if pywt is None: return data
+    coeff = pywt.wavedec(data, wavelet, mode="per")
+    # Universal thresholding
+    sigma = np.median(np.abs(coeff[-level])) / 0.6745
+    threshold = sigma * np.sqrt(2 * np.log(len(data)))
+    coeff[1:] = [pywt.threshold(i, value=threshold, mode="soft") for i in coeff[1:]]
+    return pywt.waverec(coeff, wavelet, mode="per")[:len(data)]
+
 def compute_pressure_index(cpu, request, r_time):
     # Normalize locally to avoid massive spikes
     cpu_n = (cpu - np.min(cpu)) / (np.max(cpu) - np.min(cpu) + 1e-7)
@@ -27,8 +45,9 @@ def prepare_data_v2(
     """
     df = df.copy()
     
-    # Giai đoạn 2.1: Interpolation
-    df = df.interpolate(method='linear', limit_direction='both')
+    # Giai đoạn 2.1: Interpolation (Numeric only)
+    numeric_cols = df.select_dtypes(include=[np.number]).columns
+    df[numeric_cols] = df[numeric_cols].interpolate(method='linear', limit_direction='both')
     df = df.fillna(0) # Fallback
 
     # Khai báo các cột cốt lõi
@@ -42,9 +61,13 @@ def prepare_data_v2(
     req_raw = df['Request_rate'].values.astype(float)
     err_raw = df.get('Error_Rate_5xx', df.get('Error_rate', pd.Series(np.zeros(len(df))))).values
 
-    # Giai đoạn 2.1: Lọc nhiễu Savitzky-Golay & Outlier smoothing
-    if filter_noise and savgol_filter is not None:
-        if len(cpu_raw) > 11:
+    # Giai đoạn 2.1: Lọc nhiễu SOTA (Wavelet Denoising)
+    if filter_noise:
+        if pywt is not None and len(cpu_raw) > 32:
+            cpu_raw = wavelet_denoise(cpu_raw)
+            rt_raw = wavelet_denoise(rt_raw)
+            req_raw = wavelet_denoise(req_raw)
+        elif savgol_filter is not None and len(cpu_raw) > 11:
             cpu_raw = savgol_filter(cpu_raw, window_length=11, polyorder=3)
             rt_raw = savgol_filter(rt_raw, window_length=11, polyorder=3)
             req_raw = savgol_filter(req_raw, window_length=11, polyorder=3)

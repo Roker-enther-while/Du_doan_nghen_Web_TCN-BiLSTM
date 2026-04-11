@@ -71,7 +71,7 @@ from src.models.tcn_attention_bilstm import build_advanced_model
 # ==========================================
 DATA_DIR = "Data/"
 WINDOW_SIZE = 60
-NUM_FEATURES = 10  # Upgraded from 8
+NUM_FEATURES = 13  # Upgraded from 10 to match prepare_data_v2
 USE_LOG = True
 EPOCHS = 100
 BATCH_SIZE = 64 # Reduced for stability on laptop/WDDM drivers
@@ -122,7 +122,11 @@ def get_gpu_memory():
     except:
         return 0, 0
 
-def run_advanced_training_v3():
+def run_advanced_training_v3(epochs=None):
+    if epochs is not None:
+        global EPOCHS
+        EPOCHS = epochs
+    
     # Record start resources
     used_start, total_vram = get_gpu_memory()
     start_time_global = time.time()

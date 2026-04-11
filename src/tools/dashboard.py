@@ -17,7 +17,7 @@ import sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 from src.utils.data_preprocessing import prepare_data_v2
 from src.utils.data_loaders import UniversalDataLoader
-from src.models.attention_layer import Attention
+from src.models.attention_layer import FeatureAttention, TemporalAttention
 from src.utils.metrics import calculate_academic_metrics, simulate_baseline_lstm, simulate_tcn_lstm, calculate_system_efficiency
 from src.services.decision_engine import RuleBasedDecisionEngine
 
@@ -77,7 +77,13 @@ def load_model_optimized(model_name):
     full_path = os.path.join(CHECKPOINT_DIR, model_name)
     if not os.path.exists(full_path): return None
     try:
-        return tf.keras.models.load_model(full_path, custom_objects={'Attention': Attention}, compile=False)
+        return tf.keras.models.load_model(full_path, 
+                                        custom_objects={
+                                            'Attention': TemporalAttention, # Compatibility with older models
+                                            'FeatureAttention': FeatureAttention,
+                                            'TemporalAttention': TemporalAttention
+                                        }, 
+                                        compile=False)
     except Exception as e:
         print(f"Error loading model {model_name}: {e}")
         return None

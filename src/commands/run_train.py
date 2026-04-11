@@ -20,8 +20,8 @@ def run_training_command(args):
     print(f"Model Architecture: TCN-Attention-BiLSTM (Upgraded)")
     
     if args.mode == "global":
-        print(f"Starting Global Training on {args.data_dir}...")
-        run_advanced_training_v3()
+        print(f"Starting Global Training on {args.data_dir} for {args.epochs} epochs...")
+        run_advanced_training_v3(epochs=args.epochs)
         print("[OK] Global Model Training completed.")
     elif args.mode == "single":
         print(f"Starting Single Server Training on {args.file}...")
@@ -36,6 +36,7 @@ if __name__ == "__main__":
     parser.add_argument("mode", choices=["global", "single"], help="Training mode")
     parser.add_argument("--data_dir", default="Data", help="Directory for global training data")
     parser.add_argument("--file", help="Specific CSV file for single training")
+    parser.add_argument("--epochs", type=int, default=100, help="Number of training epochs")
     
     args = parser.parse_args()
     run_training_command(args)
